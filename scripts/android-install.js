@@ -71,6 +71,7 @@ AndroidInstall.prototype.start = function () {
 
 AndroidInstall.prototype.executeStep = function (step) {
 	var self = this;
+	console.log("[Android] Executing step ", this.steps[step]);
 	if (step < this.steps.length) {
 		var promise = this[this.steps[step]]();
 		promise.then(function () {
