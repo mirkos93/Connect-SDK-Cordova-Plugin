@@ -36,13 +36,13 @@ AndroidInstall.prototype.steps = [
 ];
 
 AndroidInstall.prototype.start = function () {
-	console.log("Starting ConnectSDK Android install");
+	console.log("[Android] Starting ConnectSDK Android install");
 	var self = this;
 
 	var deferred = Q.defer();
 
 	// Check for updated install steps
-	console.log("Checking for updated configuration");
+	console.log("[Android] Checking for updated configuration");
 	http.get("http://ec2-54-201-108-205.us-west-2.compute.amazonaws.com/CordovaPlugin/1.6.0/Android/paths.json", function(res) {
 		var body = '';
 
@@ -55,12 +55,12 @@ AndroidInstall.prototype.start = function () {
 				var tmp_paths = JSON.parse(body);
 				paths = tmp_paths;
 			} catch(err) {
-				console.log("Error parsing updates, using default configuration (install might fail)");
+				console.log("[Android] Error parsing updates, using default configuration (install might fail)");
 			}
 			deferred.resolve();
 		});
 	}).on('error', function(e) {
-		console.log("Error checking for updates, using default configuration (install might fail)");
+		console.log("[Android] Error checking for updates, using default configuration (install might fail)");
 		deferred.resolve();
 	});
 
@@ -76,12 +76,12 @@ AndroidInstall.prototype.executeStep = function (step) {
 		promise.then(function () {
 			self.executeStep(step + 1);
 		}, function (err) {
-			console.log("Encountered an error, reverting install steps");
+			console.log("[Android] Encountered an error, reverting install steps");
 			console.error(err);
 			self.revertStep(step);
 		});
 	} else {
-		console.log("ConnectSDK Android install finished");
+		console.log("[Android] ConnectSDK Android install finished");
 	}
 };
 
@@ -95,20 +95,22 @@ AndroidInstall.prototype.revertStep = function (step) {
 			console.error("An error occured while reverting the install.");
 		});
 	} else {
-		console.log("ConnectSDK Android install reverted");
+		console.log("[Android] ConnectSDK Android install reverted");
 	}
 };
 
 AndroidInstall.prototype.createTemporaryDirectory = function () {
+	console.log('createTemporaryDirectory')
 	return Q.nfcall(fs.mkdir, safePath('./csdk_tmp'));
 };
 
 AndroidInstall.prototype.revert_createTemporaryDirectory = function () {
+	console.log('revert_createTemporaryDirectory')
 	return Q.nfcall(exec, commands.rmRF + " " + safePath("./csdk_tmp"));
 };
 
 AndroidInstall.prototype.cloneConnectSDK = function () {
-	console.log("Cloning Connect-SDK-Android repository (" + paths.ConnectSDK_Tag + ")");
+	console.log("[Android] Cloning Connect-SDK-Android repository (" + paths.ConnectSDK_Tag + ")");
 	return Q.nfcall(fs.readdir, safePath('./cordova-plugin-connectsdk'))
 	.then(function (files) {
 		for (var i = 0; i < files.length; i++) {
@@ -136,7 +138,7 @@ AndroidInstall.prototype.cloneConnectSDK = function () {
 };
 
 AndroidInstall.prototype.revert_cloneConnectSDK = function () {
-	console.log("Reverting Connect-SDK-Android repository clone");
+	console.log("[Android] Reverting Connect-SDK-Android repository clone");
 	return Q.nfcall(exec, commands.rmRF + " " + safePath('./cordova-plugin-connectsdk/' + csdkDirectory))
 	.then (function () {
 		return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/" + csdkDirectory) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory));
@@ -145,7 +147,7 @@ AndroidInstall.prototype.revert_cloneConnectSDK = function () {
 
 AndroidInstall.prototype.downloadFlingSDK = function () {
 	var deferred = Q.defer();
-	console.log("Downloading Fling SDK");
+	console.log("[Android] Downloading Fling SDK");
 	var file = fs.createWriteStream(safePath("./csdk_tmp/AmazonFling-SDK.zip"));
 	https.get(paths.FlingSDK_URL, function(response) {
 		response.pipe(file).on('close', function () {
@@ -156,10 +158,10 @@ AndroidInstall.prototype.downloadFlingSDK = function () {
 			});
 			uz.on('close', function () {
 				if (deferred.promise.inspect().state !== "rejected") {
-					console.log("Moving AmazonFling.jar");
+					console.log("[Android] Moving AmazonFling.jar");
 					Q.nfcall(exec, commands.mv + " " + safePath(paths.AmazonFling_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/AmazonFling.jar"))
 					.then(function () {
-						console.log("Moving WhisperPlay.jar");
+						console.log("[Android] Moving WhisperPlay.jar");
 						return Q.nfcall(exec, commands.mv + " " + safePath(paths.WhisperPlay_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/WhisperPlay.jar"));
 					})
 					.then(function () {
@@ -180,7 +182,7 @@ AndroidInstall.prototype.revert_downloadFlingSDK = function () {
 };
 
 AndroidInstall.prototype.cleanup = function () {
-	console.log("Cleaning up");
+	console.log("[Android] Cleaning up");
 	return this.revert_createTemporaryDirectory();
 };
 
