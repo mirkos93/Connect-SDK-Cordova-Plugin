@@ -67,6 +67,8 @@ dependencies {
     compile files('core/libs/javax.jmdns_3.4.1-patch2.jar')
 
     //compile fileTree(dir: 'modules/firetv/libs', include: '*.jar')
+    compile files('modules/firetv/libs/AmazonFling.jar')
+    compile files('modules/firetv/libs/WhisperPlay.jar')
 
     compile 'com.android.support:support-v4:22.2.1'
     compile 'com.android.support:appcompat-v7:22.2.1'
